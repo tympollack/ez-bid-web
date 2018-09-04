@@ -9,14 +9,14 @@
         </auction-control>
         <auction-control
                 :loading="loaders.getAuctionListFromFirestore"
-                name="Get Auction List From Server"
+                name="Get Auction List From Firestore"
                 @click="getAuctionListFromFirestore"
         >
             retrieved {{ auctions.length }} auctions in {{ times.getAuctionListFromFirestore }}ms.
         </auction-control>
         <auction-control
                 :loading="loaders.saveAuctionsToFirestore"
-                name="Get Auction List From Server"
+                name="Save Auctions to Firestore"
                 @click="saveAuctionsToFirestore"
         >
             saved {{ auctionsSaved.length }} auctions in {{ times.saveAuctionsToFirestore }}ms.
@@ -47,6 +47,8 @@
 <script>
     import AuctionCard from './AuctionCard'
     import AuctionControl from './AuctionControl'
+    import firebase from 'firebase/app'
+    import 'firebase/functions'
 
     export default {
         name: "auction-controls",
@@ -113,27 +115,59 @@
 
         methods: {
             getAuctionListFromFirestore () {
+                const url = 'http://localhost:5000/ezbidfta867/us-central1/helloWorld'
+                const params = {
+                    method: 'GET',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    redirect: 'follow',
+                    referrer: 'no-referrer',
+                }
 
+                const callback = data => {
+                    console.log(data)
+                }
+
+                fetch(url, params).then(response => response.json())
+                    .then(callback)
+                    .catch(error => console.log('error:', error))
             },
 
             getAuctionListFromServer () {
                 this.loaders.getAuctionListFromServer = true
-                const url = 'http://localhost:3000/getAuctionList'
-                const params = {}
+                const url = 'http://localhost:5000/ezbidfta867/us-central1/getAuctionList'
+                const params = {
+                    // method: 'GET',
+                    // mode: 'no-cors',
+                    // cache: 'no-cache',
+                    // credentials: 'same-origin',
+                    // headers: {
+                    //     'Content-Type': 'application/x-www-form-urlencoded'
+                    // },
+                    // redirect: 'follow',
+                    // referrer: 'no-referrer',
+                }
 
                 const callback = data => {
+                    console.log('getAuctionListFromServer data: ', data)
                     this.auctions = data.content
                     this.loaders.getAuctionListFromServer = false
                 }
 
                 fetch(url, params).then(response => response.json())
                     .then(callback)
-                    .catch(error => console.log('error:', error));
+                    .catch(error => console.log('error:', error))
             },
 
             saveAuctionsToFirestore () {
-                this.loaders.saveAuctionsToFirestore = true
-
+                const helloWorld = firebase.functions().httpsCallable('helloWorld')
+                helloWorld({}).then(result =>
+                    console.log(result)
+                )
             },
         }
     }
